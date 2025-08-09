@@ -9,7 +9,14 @@ const dbPath = path.join(process.cwd(), "data", "db.json");
 
 interface DB {
   users: { id: string; name: string; email: string }[];
-  boards: { id: string; title: string; userId: string; createdAt: string }[];
+  boards: {
+    id: string;
+    title: string;
+    description: string;
+    completed: boolean;
+    userId: string;
+    createdAt: string;
+  }[];
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -32,7 +39,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.method === "POST") {
-    const { title } = req.body;
+    const { title, description } = req.body;
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Title is required" });
     }
@@ -40,6 +47,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     const newBoard = {
       id: Date.now().toString(),
       title: title.trim(),
+      description: description?.trim() || "",
+      completed: false,
       userId: payload.id,
       createdAt: new Date().toISOString(),
     };
