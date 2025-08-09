@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "id": "_7RotA9T8tTb2FSyJbM3U",
+      "name": "Naman",
+      "email": "naman@example.com",
+      "password": "$2a$08$qH/k.PIAnWBazg36MJofQO4EBLl1DfYjDZDHrSPuexBA5vwS61nyi"
+    },
+    {
+      "id": "tDPaPBEgf0koPD1NMsM4p",
+      "name": "N",
+      "email": "n@example.com",
+      "password": "$2a$08$u0d0EBM5dMpcELbka2eVJeK.t6B.RR.QuuX8bk8dihq76uhCK1N5C"
+    },
+    {
+      "id": "1cvePyGzKKoL5jc2bF5Mb",
+      "name": "Nam",
+      "email": "n@12.com",
+      "password": "$2b$08$iKfwH06dPgJ/aMwHxtAkcORXWM1zdiXR7xCo5Znsk3wLTLsFGPNAq"
+    }
+  ],
+  "boards": [
+    {
+      "id": "x0GzsduiHeA7-N2AG7k2F",
+      "title": "fhdskf",
+      "userId": "tDPaPBEgf0koPD1NMsM4p",
+      "createdAt": "2025-08-09T12:00:38.373Z"
+    }
+  ],
+  "tasks": []
+}
