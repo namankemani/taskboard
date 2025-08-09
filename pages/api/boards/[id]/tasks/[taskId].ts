@@ -5,10 +5,19 @@ import { getUserFromReq } from '../../../../../lib/userFromReq'
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = getUserFromReq(req)
   if (!user) return res.status(401).json({ message: 'Unauthorized' })
+
   const db = readDB()
   const { boardId, taskId } = req.query
-  const task = db.tasks.find((t:any) => t.id === taskId && t.boardId === boardId)
-  if (!task || task.userId !== user.id) return res.status(404).json({ message: 'Task not found' })
+  const boardIdStr = String(boardId)
+  const taskIdStr = String(taskId)
+
+  const task = db.tasks.find(
+    (t: any) => String(t.id) === taskIdStr && String(t.boardId) === boardIdStr
+  )
+  if (!task || task.userId !== user.id) {
+    return res.status(404).json({ message: 'Task not found' })
+  }
+
   if (req.method === 'PUT') {
     const { title, description, status, dueDate } = req.body
     task.title = title ?? task.title
@@ -18,10 +27,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     writeDB(db)
     return res.status(200).json(task)
   }
+
   if (req.method === 'DELETE') {
-    db.tasks = db.tasks.filter((t:any)=> t.id !== taskId)
+    db.tasks = db.tasks.filter((t: any) => String(t.id) !== taskIdStr)
     writeDB(db)
     return res.status(200).json({ ok: true })
   }
-  res.status(200).json(task)
+
+  return res.status(200).json(task)
 }

@@ -1,13 +1,28 @@
 import { NextApiRequest } from 'next'
-import { getTokenFromReq, verifyToken } from './auth'
+import cookie from 'cookie'
+import { verifyToken } from './auth'
 import { readDB } from './db'
 
 export function getUserFromReq(req: NextApiRequest) {
-  const token = getTokenFromReq(req)
-  if (!token) return null
-  const payload: any = verifyToken(token)
-  if (!payload) return null
-  const db = readDB()
-  const user = db.users.find((u:any) => u.id === payload.id)
-  return user || null
+  try {
+   
+    const cookies = cookie.parse(req.headers.cookie || '')
+    const token = cookies.token
+    if (!token) return null
+
+   
+    const payload: any = verifyToken(token)
+    if (!payload?.id) return null
+
+    
+    const db = readDB()
+    if (!db || !Array.isArray(db.users)) return null
+
+
+    const user = db.users.find((u: any) => String(u.id) === String(payload.id))
+    return user || null
+  } catch (err) {
+    console.error('Error in getUserFromReq:', err)
+    return null
+  }
 }

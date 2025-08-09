@@ -10,3 +10,4 @@ export function readDB() {
 export function writeDB(obj: any) {
   fs.writeFileSync(DB_PATH, JSON.stringify(obj, null, 2), 'utf-8')
 }
+

@@ -13,42 +13,68 @@ type Board = {
   createdAt: string;
 };
 
-export default function Boards({ user, boards }: { user: any; boards: Board[] }) {
+interface BoardsProps {
+  user: { id: string; name: string };
+  boards: Board[];
+}
+
+export default function Boards({ user, boards }: BoardsProps) {
   const router = useRouter();
   const [list, setList] = useState<Board[]>(boards || []);
   const [title, setTitle] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "GET", credentials: "include" });
     router.push("/login");
   }
 
-  async function create(e: React.FormEvent) {
+  async function createBoard(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     if (!title.trim()) return;
+    setLoading(true);
 
     try {
       const res = await fetch("/api/boards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ ensure JWT cookie is sent
+        credentials: "include",
         body: JSON.stringify({ title }),
       });
 
       const data = await res.json();
-      console.log("API response:", res.status, data);
-
       if (res.ok) {
         setList((prev) => [data, ...prev]);
         setTitle("");
       } else {
         setError(data.message || "Failed to create board");
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deleteBoard(id: string) {
+    if (!confirm("Are you sure you want to delete this board?")) return;
+
+    try {
+      const res = await fetch(`/api/boards/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setList((prev) => prev.filter((b) => b.id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.message || "Failed to delete board");
+      }
+    } catch {
+      alert("Something went wrong. Please try again.");
     }
   }
 
@@ -68,7 +94,10 @@ export default function Boards({ user, boards }: { user: any; boards: Board[] })
       {/* Create Board Form */}
       <div className="max-w-5xl mx-auto bg-white rounded-lg shadow p-4 mb-6">
         <h3 className="text-lg font-semibold mb-3">Your Boards</h3>
-        <form onSubmit={create} className="flex flex-col sm:flex-row gap-3">
+        <form
+          onSubmit={createBoard}
+          className="flex flex-col sm:flex-row gap-3"
+        >
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -77,9 +106,10 @@ export default function Boards({ user, boards }: { user: any; boards: Board[] })
           />
           <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow transition-colors"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg shadow transition-colors"
           >
-            Create
+            {loading ? "Creating..." : "Create"}
           </button>
         </form>
         {error && <p className="text-red-500 mt-2">{error}</p>}
@@ -89,16 +119,28 @@ export default function Boards({ user, boards }: { user: any; boards: Board[] })
       <div className="max-w-5xl mx-auto grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {list.length > 0 ? (
           list.map((b) => (
-            <Link
+            <div
               key={b.id}
-              href={`/boards/${b.id}`}
-              className="block bg-white rounded-lg shadow hover:shadow-lg p-5 transition-shadow"
+              className="bg-white rounded-lg shadow hover:shadow-lg p-5 transition-shadow flex flex-col justify-between"
             >
-              <h4 className="text-lg font-semibold text-gray-800">{b.title}</h4>
-              <p className="text-sm text-gray-500 mt-1">
-                Created: {new Date(b.createdAt).toLocaleDateString()}
-              </p>
-            </Link>
+              <div>
+                <Link
+                  href={`/boards/${b.id}`}
+                  className="text-lg font-semibold text-gray-800 hover:text-blue-600"
+                >
+                  {b.title}
+                </Link>
+                <p className="text-sm text-gray-500 mt-1">
+                  Created: {new Date(b.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                onClick={() => deleteBoard(b.id)}
+                className="mt-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
+              >
+                Delete
+              </button>
+            </div>
           ))
         ) : (
           <p className="text-gray-600 col-span-full">No boards yet.</p>
@@ -112,9 +154,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { req } = ctx;
   const cookies = parse(req.headers.cookie || "");
   const token = cookies.token || null;
+
   if (!token) {
     return { redirect: { destination: "/login", permanent: false } };
   }
+
   try {
     const payload: any = verify(
       token,
@@ -125,12 +169,14 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     const db = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), "data", "db.json"), "utf-8")
     );
+
     const user = db.users.find((u: any) => u.id === payload.id);
     if (!user)
       return { redirect: { destination: "/login", permanent: false } };
+
     const boards = db.boards.filter((b: any) => b.userId === user.id);
     return { props: { user: { id: user.id, name: user.name }, boards } };
-  } catch (e) {
+  } catch {
     return { redirect: { destination: "/login", permanent: false } };
   }
 };
