@@ -27,7 +27,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 text-black">
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
         {/* Header */}
         <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">
@@ -40,6 +40,7 @@ export default function Register() {
             <label className="block text-gray-700 font-medium mb-1">Name</label>
             <input
               type="text"
+              placeholder="Enter your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -51,6 +52,7 @@ export default function Register() {
             <label className="block text-gray-700 font-medium mb-1">Email</label>
             <input
               type="email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -64,6 +66,7 @@ export default function Register() {
             </label>
             <input
               type="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
