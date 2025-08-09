@@ -101,7 +101,7 @@ export default function Boards({ user, boards }: BoardsProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 p-4 text-black">
       {/* Header */}
       <header className="flex justify-between items-center max-w-5xl mx-auto py-4">
         <h2 className="text-2xl font-bold">Hi {user.name}</h2>
