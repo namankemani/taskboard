@@ -1,40 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# 📝 Todo Application (Next.js + TypeScript + Tailwind)
 
-## Getting Started
+A simple and modern Todo application built using **Next.js**, **TypeScript**, and **Tailwind CSS**, with user authentication and task management features.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Authentication**
+  - Secure login & signup functionality.
+  - Only authenticated users can manage their tasks.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+- **Boards (Task Lists)**
+  - Create, edit, and delete boards.
+  - Each board has:
+    - **Title** 🏷️
+    - **Description** 📄
+    - **Status** ✅ Pending / Completed
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+- **UI**
+  - Built with **Tailwind CSS** for a responsive and modern design.
+  - Fully mobile-friendly.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+- **TypeScript Support**
+  - Strong type safety for predictable and maintainable code.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## ⚠️ Deployment Notes
 
-To learn more about Next.js, take a look at the following resources:
+### Cause of Error on Vercel
+During deployment to **Vercel**, the following error may appear in logs:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This happens because:
+- Vercel runs your API routes/functions in a **serverless environment**.
+- The file system (`/var/task/`) is **read-only** during runtime.
+- Any attempt to write to a local file (like `data/db.json`) will fail.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Why Local Works But Vercel Doesn’t
+- **Local development**: You can read/write files freely in your `data/` folder.
+- **Vercel**: You can only read files packaged at build time, not modify them.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+---
+
+## 💡 Solutions
+
+### 1. Use a Cloud Database (**Recommended**)
+Migrate from file-based storage to a persistent cloud database:
+- **Supabase** (PostgreSQL)
+- **PlanetScale** (MySQL)
+- **MongoDB Atlas** (MongoDB)
+- **Neon.tech** (PostgreSQL)
+
+This ensures your data persists between deployments and is writable in production.
+
+### 2. Use Vercel KV / Upstash Redis
+For small-scale apps, a key-value store is quick to integrate and serverless-friendly.
+
+### 3. Temporary In-Memory Storage (For Testing)
+Keep data in memory (inside the API route).  
+**Note**: Data will reset whenever the serverless function restarts.
+
+Example:
+```ts
+let boards: any[] = [];
+
+export default function handler(req, res) {
+  if (req.method === 'GET') {
+    res.status(200).json(boards);
+  } else if (req.method === 'POST') {
+    const newBoard = { id: Date.now(), ...req.body };
+    boards.push(newBoard);
+    res.status(201).json(newBoard);
+  }
+}
+
+
