@@ -9,6 +9,7 @@ A simple and modern Todo application built using **Next.js**, **TypeScript**, an
 - **Authentication**
   - Secure login & signup functionality.
   - Only authenticated users can manage their tasks.
+  - email- n@12.com password-123456
 
 - **Boards (Task Lists)**
   - Create, edit, and delete boards.
